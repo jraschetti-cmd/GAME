@@ -7,7 +7,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* Canvas para el mundo 2D */
     #gameCanvas { image-rendering: pixelated; }
     .log-entry { animation: fadeIn 0.3s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
@@ -15,19 +14,17 @@
 </head>
 <body class="bg-slate-900 text-slate-200 min-h-screen font-sans">
 
-  <!-- ============ PANTALLA DE AUTENTICACIÓN ============ -->
+  <!-- PANTALLA DE AUTENTICACIÓN -->
   <div id="authScreen" class="flex items-center justify-center min-h-screen p-4">
     <div class="w-full max-w-md bg-slate-800 rounded-2xl p-8 shadow-2xl border border-slate-700">
       <h1 class="text-2xl font-bold text-center mb-1 text-emerald-400">⚔️ Idle Realms</h1>
-      <p class="text-center text-slate-400 text-sm mb-6">MMORPG 2D Semi-Idle</p>
+      <p class="text-center text-slate-400 text-sm mb-6">Acceso Rápido (Modo Prueba)</p>
 
-      <!-- Tabs -->
       <div class="flex mb-6 bg-slate-900 rounded-lg p-1">
         <button id="tabLogin" class="flex-1 py-2 rounded-md text-sm font-medium bg-emerald-600 text-white transition">Iniciar Sesión</button>
         <button id="tabRegister" class="flex-1 py-2 rounded-md text-sm font-medium text-slate-400 hover:text-white transition">Registrarse</button>
       </div>
 
-      <!-- Formulario -->
       <div class="space-y-4">
         <div>
           <label class="block text-xs font-medium text-slate-400 mb-1">Nombre de Usuario</label>
@@ -48,10 +45,8 @@
     </div>
   </div>
 
-  <!-- ============ PANTALLA DE JUEGO ============ -->
+  <!-- PANTALLA DE JUEGO -->
   <div id="gameScreen" class="hidden min-h-screen flex flex-col">
-    
-    <!-- Header -->
     <header class="bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <span class="text-xl">⚔️</span>
@@ -61,22 +56,16 @@
       <button id="logoutBtn" class="text-xs text-slate-400 hover:text-red-400 transition">Cerrar Sesión</button>
     </header>
 
-    <!-- Contenido principal -->
     <div class="flex-1 flex flex-col lg:flex-row gap-4 p-4 max-w-6xl mx-auto w-full">
-      
-      <!-- Columna izquierda: Mundo 2D -->
       <div class="flex-1 space-y-4">
         <div class="bg-slate-800 rounded-xl border border-slate-700 p-4">
           <h2 class="text-sm font-semibold text-slate-300 mb-2">🗺️ Reino de Valdoria</h2>
-          <canvas id="gameCanvas" width="640" height="360" 
-            class="w-full rounded-lg bg-slate-950 border border-slate-700" style="image-rendering: pixelated;"></canvas>
+          <canvas id="gameCanvas" width="640" height="360" class="w-full rounded-lg bg-slate-950 border border-slate-700" style="image-rendering: pixelated;"></canvas>
           <div class="flex items-center justify-between mt-2 text-xs text-slate-400">
             <span id="idleStatus">💤 Inactivo — explorando</span>
             <span id="tickCounter">Tick: 0</span>
           </div>
         </div>
-
-        <!-- Log de eventos -->
         <div class="bg-slate-800 rounded-xl border border-slate-700 p-4">
           <h2 class="text-sm font-semibold text-slate-300 mb-2">📜 Registro de Aventura</h2>
           <div id="eventLog" class="space-y-1 text-xs max-h-40 overflow-y-auto custom-scroll">
@@ -85,9 +74,7 @@
         </div>
       </div>
 
-      <!-- Columna derecha: Stats y acciones -->
       <div class="lg:w-72 space-y-4">
-        <!-- Stats -->
         <div class="bg-slate-800 rounded-xl border border-slate-700 p-4">
           <h2 class="text-sm font-semibold text-slate-300 mb-3">📊 Estadísticas</h2>
           <div class="space-y-3">
@@ -111,7 +98,6 @@
           </div>
         </div>
 
-        <!-- Acciones -->
         <div class="bg-slate-800 rounded-xl border border-slate-700 p-4">
           <h2 class="text-sm font-semibold text-slate-300 mb-3">⚡ Acciones</h2>
           <div class="space-y-2">
@@ -124,10 +110,9 @@
           </div>
         </div>
 
-        <!-- Info semi-idle -->
         <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 p-4">
           <p class="text-xs text-slate-500 leading-relaxed">
-            💡 <strong>Modo Semi-Idle:</strong> Ganas EXP y Oro automáticamente cada 5 segundos mientras estás conectado. Puedes acelerar el progreso con acciones manuales.
+            💡 <strong>Modo Semi-Idle:</strong> Ganas EXP y Oro automáticamente cada 5 segundos mientras estás conectado.
           </p>
         </div>
       </div>
@@ -135,35 +120,25 @@
   </div>
 
   <script>
-    // ============================================================
-    // CONFIGURACIÓN — REEMPLAZA CON TUS CREDENCIALES DE SUPABASE
-    // ============================================================
+    // CONFIGURACIÓN
     const SUPABASE_URL = 'https://htyuckzvzirclyanovte.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0eXVja3p2emlyY2x5YW5vdnRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMDQ2NjAsImV4cCI6MjEwODY4MDY2MH0.BdOnv7E8WfspppoCA2sFSSfJGxpVE1jAD5Blj4eWt2c';
 
     const { createClient } = supabase;
     const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ============================================================
-    // ESTADO GLOBAL
-    // ============================================================
+    // ESTADO
     let currentUser = null;
     let playerProfile = null;
     let idleInterval = null;
     let tickCount = 0;
     const TICK_INTERVAL_MS = 5000;
-
-    // ============================================================
-    // UTILIDADES DE UI
-    // ============================================================
     const $ = (id) => document.getElementById(id);
 
     function showAuthMessage(msg, type = 'error') {
       const el = $('authMessage');
       el.textContent = msg;
-      el.className = `mt-4 text-center text-xs min-h-[1.5rem] ${
-        type === 'error' ? 'text-red-400' : 'text-emerald-400'
-      }`;
+      el.className = `mt-4 text-center text-xs min-h-[1.5rem] ${type === 'error' ? 'text-red-400' : 'text-emerald-400'}`;
     }
 
     function addLog(message) {
@@ -184,19 +159,16 @@
       $('displayLevel').textContent = `Nv. ${p.level}`;
       $('levelText').textContent = p.level;
       $('goldText').textContent = p.gold.toLocaleString();
-      
       const expNeeded = p.level * 100;
       const expPercent = Math.min(100, (p.experience / expNeeded) * 100);
       $('expBar').style.width = `${expPercent}%`;
       $('expText').textContent = `${p.experience} / ${expNeeded}`;
     }
 
-    // ============================================================
-    // LÓGICA DE AUTENTICACIÓN
-    // ============================================================
-    // Convertimos username → email sintético para Supabase Auth
+    // AUTENTICACIÓN SIMPLE (SIN VALIDACIÓN DE EMAIL ESTRICTA)
     function usernameToEmail(username) {
-      return `${username.toLowerCase().trim()}@idle-realms.com`;
+      // Usamos un dominio que Supabase no bloquee por ser "reservado"
+      return `${username.toLowerCase().trim()}@test.com`;
     }
 
     function validateUsername(username) {
@@ -217,15 +189,21 @@
         email,
         password,
         options: {
-          data: { username: username.trim() }
+          data: { username: username.trim() },
+          // Forzamos a que no requiera confirmación
+          emailRedirectTo: window.location.origin 
         }
       });
 
       if (error) return { error: error.message };
       
-      // Si email confirmation está desactivado, data.session existirá
+      // Si Supabase requiere confirmación, intentamos loguear directamente
       if (!data.session) {
-        return { error: 'Registro exitoso, pero la confirmación de email está activa. Contacta al administrador.' };
+        const loginResult = await login(username, password);
+        if (loginResult.error) {
+          return { error: 'Registro creado. Por favor, inicia sesión manualmente.' };
+        }
+        return { data: loginResult.data };
       }
 
       return { data };
@@ -237,17 +215,12 @@
         email,
         password
       });
-      if (error) return { error: 'Credenciales inválidas. Verifica tu nombre y contraseña.' };
+      if (error) return { error: 'Usuario o contraseña incorrectos.' };
       return { data };
     }
 
     async function loadProfile(userId) {
-      const { data, error } = await supabaseClient
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
+      const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', userId).single();
       if (error) {
         console.error('Error cargando perfil:', error);
         return null;
@@ -255,45 +228,32 @@
       return data;
     }
 
-    // ============================================================
-    // PERSISTENCIA DEL PERFIL
-    // ============================================================
+    // PERSISTENCIA
     let saveTimeout = null;
     function scheduleSave() {
       if (saveTimeout) clearTimeout(saveTimeout);
       saveTimeout = setTimeout(async () => {
         if (!playerProfile || !currentUser) return;
-        const { error } = await supabaseClient
-          .from('profiles')
-          .update({
-            level: playerProfile.level,
-            experience: playerProfile.experience,
-            gold: playerProfile.gold,
-            last_tick: new Date().toISOString()
-          })
-          .eq('id', currentUser.id);
-        if (error) console.error('Error guardando:', error);
+        await supabaseClient.from('profiles').update({
+          level: playerProfile.level,
+          experience: playerProfile.experience,
+          gold: playerProfile.gold,
+          last_tick: new Date().toISOString()
+        }).eq('id', currentUser.id);
       }, 2000);
     }
 
-    // ============================================================
-    // BUCLE SEMI-IDLE
-    // ============================================================
+    // JUEGO
     function startIdleLoop() {
       if (idleInterval) clearInterval(idleInterval);
-      
       idleInterval = setInterval(async () => {
         if (!playerProfile) return;
         tickCount++;
         $('tickCounter').textContent = `Tick: ${tickCount}`;
-
-        // Ganancia pasiva
         const expGain = 3 + Math.floor(Math.random() * 5);
         const goldGain = 1 + Math.floor(Math.random() * 3);
-        
         playerProfile.experience += expGain;
         playerProfile.gold += goldGain;
-
         addLog(`⏳ Tick pasivo: +${expGain} EXP, +${goldGain} Oro`);
         checkLevelUp();
         updateUI();
@@ -313,9 +273,6 @@
       }
     }
 
-    // ============================================================
-    // ACCIONES MANUALES
-    // ============================================================
     async function trainAction() {
       if (!playerProfile) return;
       playerProfile.experience += 5;
@@ -336,116 +293,86 @@
       drawWorld();
     }
 
-    // ============================================================
-    // CANVAS 2D — RENDERIZADO SIMPLE DEL MUNDO
-    // ============================================================
+    // CANVAS
     function drawWorld() {
       const canvas = $('gameCanvas');
       const ctx = canvas.getContext('2d');
       const w = canvas.width;
       const h = canvas.height;
-
-      // Fondo degradado (cielo)
       const gradient = ctx.createLinearGradient(0, 0, 0, h);
       gradient.addColorStop(0, '#1e293b');
       gradient.addColorStop(1, '#0f172a');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, w, h);
-
-      // Estrellas decorativas
       ctx.fillStyle = 'rgba(255,255,255,0.3)';
       for (let i = 0; i < 30; i++) {
-        const x = (i * 137.5) % w;
-        const y = (i * 97.3) % (h * 0.6);
-        ctx.fillRect(x, y, 1.5, 1.5);
+        ctx.fillRect((i * 137.5) % w, (i * 97.3) % (h * 0.6), 1.5, 1.5);
       }
-
-      // Suelo
       ctx.fillStyle = '#1a2e1a';
       ctx.fillRect(0, h * 0.7, w, h * 0.3);
-
-      // Árboles simples
       const treePositions = [80, 200, 350, 500, 580];
       treePositions.forEach((tx, i) => {
         const ty = h * 0.7;
-        // Tronco
         ctx.fillStyle = '#4a3728';
         ctx.fillRect(tx - 4, ty - 20, 8, 20);
-        // Copa
         ctx.fillStyle = i % 2 === 0 ? '#166534' : '#15803d';
-        ctx.beginPath();
-        ctx.arc(tx, ty - 30, 18, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(tx - 10, ty - 22, 12, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(tx + 10, ty - 22, 12, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(tx, ty - 30, 18, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(tx - 10, ty - 22, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(tx + 10, ty - 22, 12, 0, Math.PI * 2); ctx.fill();
       });
-
-      // Jugador (círculo animado)
       if (playerProfile) {
         const px = w / 2;
         const py = h * 0.65;
         const bounce = Math.sin(Date.now() / 500) * 3;
-        
-        // Sombra
         ctx.fillStyle = 'rgba(0,0,0,0.3)';
-        ctx.beginPath();
-        ctx.ellipse(px, py + 12, 12, 4, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Cuerpo
+        ctx.beginPath(); ctx.ellipse(px, py + 12, 12, 4, 0, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#34d399';
-        ctx.beginPath();
-        ctx.arc(px, py + bounce, 12, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Ojos
+        ctx.beginPath(); ctx.arc(px, py + bounce, 12, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#0f172a';
-        ctx.beginPath();
-        ctx.arc(px - 4, py + bounce - 3, 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(px + 4, py + bounce - 3, 2, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(px - 4, py + bounce - 3, 2, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(px + 4, py + bounce - 3, 2, 0, Math.PI * 2); ctx.fill();
       }
-
-      // Texto de estado
       ctx.fillStyle = 'rgba(255,255,255,0.5)';
       ctx.font = '10px monospace';
       ctx.fillText('Valdoria — Zona Segura', 10, h - 10);
     }
 
-    // Animación continua del canvas
     function animateCanvas() {
       drawWorld();
       requestAnimationFrame(animateCanvas);
     }
 
-    // ============================================================
-    // FLUJO DE ENTRADA AL JUEGO
-    // ============================================================
     async function enterGame(user) {
       currentUser = user;
-      
       const profile = await loadProfile(user.id);
-      if (!profile) {
-        showAuthMessage('Error: No se encontró tu perfil de jugador.', 'error');
-        return;
-      }
-
-      playerProfile = profile;
       
-      // Mostrar pantalla de juego
+      if (!profile) {
+        // Si el trigger no creó el perfil, lo forzamos aquí
+        const username = user.user_metadata.username || 'Aventurero';
+        const { error: insertError } = await supabaseClient.from('profiles').insert([{
+          id: user.id,
+          username: username,
+          level: 1,
+          experience: 0,
+          gold: 0
+        }]);
+        
+        if (insertError) {
+          showAuthMessage('Error crítico al crear perfil: ' + insertError.message);
+          return;
+        }
+        // Recargar el perfil recién creado
+        const newProfile = await loadProfile(user.id);
+        if(!newProfile) return;
+        playerProfile = newProfile;
+      } else {
+        playerProfile = profile;
+      }
+      
       $('authScreen').classList.add('hidden');
       $('gameScreen').classList.remove('hidden');
-      
       updateUI();
-      addLog(`🌟 Bienvenido de nuevo, ${profile.username}.`);
-      addLog('⚔️ El modo semi-idle está activo. Ganas EXP y Oro automáticamente.');
-      
+      addLog(`🌟 Bienvenido, ${playerProfile.username}.`);
       startIdleLoop();
       animateCanvas();
     }
@@ -458,15 +385,11 @@
       $('gameScreen').classList.add('hidden');
       $('authScreen').classList.remove('hidden');
       $('eventLog').innerHTML = '<p class="text-slate-500 italic">Los eventos aparecerán aquí...</p>';
-      $('usernameInput').value = '';
-      $('passwordInput').value = '';
       showAuthMessage('Sesión cerrada.', 'success');
     }
 
-    // ============================================================
-    // EVENT LISTENERS — UI
-    // ============================================================
-    let authMode = 'login'; // 'login' | 'register'
+    // UI EVENT LISTENERS
+    let authMode = 'login';
 
     $('tabLogin').addEventListener('click', () => {
       authMode = 'login';
@@ -488,11 +411,8 @@
       const username = $('usernameInput').value.trim();
       const password = $('passwordInput').value;
 
-      if (!username || !password) {
-        showAuthMessage('Completa todos los campos.');
-        return;
-      }
-
+      if (!username || !password) return showAuthMessage('Completa todos los campos.');
+      
       $('authSubmitBtn').disabled = true;
       $('authSubmitBtn').textContent = 'Procesando...';
 
@@ -503,7 +423,6 @@
             showAuthMessage(result.error);
           } else {
             showAuthMessage('¡Registro exitoso! Entrando...', 'success');
-            // Tras registro, Supabase devuelve sesión (si confirm email está off)
             const { data: { user } } = await supabaseClient.auth.getUser();
             if (user) await enterGame(user);
           }
@@ -512,20 +431,19 @@
           if (result.error) {
             showAuthMessage(result.error);
           } else {
-            showAuthMessage('¡Bienvenido de vuelta!', 'success');
+            showAuthMessage('¡Bienvenido!', 'success');
             const { data: { user } } = await supabaseClient.auth.getUser();
             if (user) await enterGame(user);
           }
         }
       } catch (err) {
-        showAuthMessage('Error inesperado: ' + err.message);
+        showAuthMessage('Error: ' + err.message);
       } finally {
         $('authSubmitBtn').disabled = false;
         $('authSubmitBtn').textContent = authMode === 'login' ? 'Entrar al Reino' : 'Crear Aventurero';
       }
     });
 
-    // Enter en los inputs
     $('passwordInput').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') $('authSubmitBtn').click();
     });
@@ -534,14 +452,9 @@
     $('trainBtn').addEventListener('click', trainAction);
     $('exploreBtn').addEventListener('click', exploreAction);
 
-    // ============================================================
-    // VERIFICACIÓN DE SESIÓN AL CARGAR
-    // ============================================================
     (async () => {
       const { data: { session } } = await supabaseClient.auth.getSession();
-      if (session?.user) {
-        await enterGame(session.user);
-      }
+      if (session?.user) await enterGame(session.user);
     })();
   </script>
 </body>
