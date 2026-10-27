@@ -18,12 +18,7 @@
   <div id="authScreen" class="flex items-center justify-center min-h-screen p-4">
     <div class="w-full max-w-md bg-slate-800 rounded-2xl p-8 shadow-2xl border border-slate-700">
       <h1 class="text-2xl font-bold text-center mb-1 text-emerald-400">⚔️ Idle Realms</h1>
-      <p class="text-center text-slate-400 text-sm mb-6">Acceso Rápido (Modo Prueba)</p>
-
-      <div class="flex mb-6 bg-slate-900 rounded-lg p-1">
-        <button id="tabLogin" class="flex-1 py-2 rounded-md text-sm font-medium bg-emerald-600 text-white transition">Iniciar Sesión</button>
-        <button id="tabRegister" class="flex-1 py-2 rounded-md text-sm font-medium text-slate-400 hover:text-white transition">Registrarse</button>
-      </div>
+      <p class="text-center text-slate-400 text-sm mb-6">Acceso Local (Guardado en tu navegador)</p>
 
       <div class="space-y-4">
         <div>
@@ -32,7 +27,7 @@
             class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 transition">
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Contraseña</label>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Contraseña (Opcional)</label>
           <input id="passwordInput" type="password" placeholder="••••••••"
             class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 transition">
         </div>
@@ -112,7 +107,7 @@
 
         <div class="bg-slate-800/50 rounded-xl border border-slate-700/50 p-4">
           <p class="text-xs text-slate-500 leading-relaxed">
-            💡 <strong>Modo Semi-Idle:</strong> Ganas EXP y Oro automáticamente cada 5 segundos mientras estás conectado.
+            💡 <strong>Modo Local:</strong> Tu progreso se guarda automáticamente en este navegador. 
           </p>
         </div>
       </div>
@@ -121,14 +116,13 @@
 
   <script>
     // CONFIGURACIÓN
+    // Ya no usamos Supabase para el login, pero lo dejamos inicializado por si lo necesitas luego
     const SUPABASE_URL = 'https://htyuckzvzirclyanovte.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0eXVja3p2emlyY2x5YW5vdnRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMDQ2NjAsImV4cCI6MjEwODY4MDY2MH0.BdOnv7E8WfspppoCA2sFSSfJGxpVE1jAD5Blj4eWt2c';
-
     const { createClient } = supabase;
     const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // ESTADO
-    let currentUser = null;
     let playerProfile = null;
     let idleInterval = null;
     let tickCount = 0;
@@ -165,12 +159,10 @@
       $('expText').textContent = `${p.experience} / ${expNeeded}`;
     }
 
-    // AUTENTICACIÓN SIMPLE (SIN VALIDACIÓN DE EMAIL ESTRICTA)
-    function usernameToEmail(username) {
-      // Usamos un dominio que Supabase no bloquee por ser "reservado"
-      return `${username.toLowerCase().trim()}@test.com`;
-    }
-
+    // ==========================================
+    // NUEVA LÓGICA DE LOGIN CON LOCAL STORAGE
+    // ==========================================
+    
     function validateUsername(username) {
       if (username.length < 3) return 'El nombre debe tener al menos 3 caracteres.';
       if (username.length > 20) return 'El nombre no puede exceder 20 caracteres.';
@@ -178,72 +170,20 @@
       return null;
     }
 
-    async function register(username, password) {
-      const validationError = validateUsername(username);
-      if (validationError) return { error: validationError };
-      if (password.length < 6) return { error: 'La contraseña debe tener al menos 6 caracteres.' };
-
-      const email = usernameToEmail(username);
-
-      const { data, error } = await supabaseClient.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { username: username.trim() },
-          // Forzamos a que no requiera confirmación
-          emailRedirectTo: window.location.origin 
-        }
-      });
-
-      if (error) return { error: error.message };
-      
-      // Si Supabase requiere confirmación, intentamos loguear directamente
-      if (!data.session) {
-        const loginResult = await login(username, password);
-        if (loginResult.error) {
-          return { error: 'Registro creado. Por favor, inicia sesión manualmente.' };
-        }
-        return { data: loginResult.data };
+    function saveGameLocal() {
+      if (playerProfile) {
+        localStorage.setItem('idleRealms_profile', JSON.stringify(playerProfile));
       }
-
-      return { data };
     }
 
-    async function login(username, password) {
-      const email = usernameToEmail(username);
-      const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-      });
-      if (error) return { error: 'Usuario o contraseña incorrectos.' };
-      return { data };
-    }
+    // Persistencia periódica
+    setInterval(() => {
+      if (playerProfile) saveGameLocal();
+    }, 5000);
 
-    async function loadProfile(userId) {
-      const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', userId).single();
-      if (error) {
-        console.error('Error cargando perfil:', error);
-        return null;
-      }
-      return data;
-    }
-
-    // PERSISTENCIA
-    let saveTimeout = null;
-    function scheduleSave() {
-      if (saveTimeout) clearTimeout(saveTimeout);
-      saveTimeout = setTimeout(async () => {
-        if (!playerProfile || !currentUser) return;
-        await supabaseClient.from('profiles').update({
-          level: playerProfile.level,
-          experience: playerProfile.experience,
-          gold: playerProfile.gold,
-          last_tick: new Date().toISOString()
-        }).eq('id', currentUser.id);
-      }, 2000);
-    }
-
-    // JUEGO
+    // ==========================================
+    // BUCLE DEL JUEGO
+    // ==========================================
     function startIdleLoop() {
       if (idleInterval) clearInterval(idleInterval);
       idleInterval = setInterval(async () => {
@@ -257,7 +197,7 @@
         addLog(`⏳ Tick pasivo: +${expGain} EXP, +${goldGain} Oro`);
         checkLevelUp();
         updateUI();
-        scheduleSave();
+        saveGameLocal(); // Guardado local en cada tick
         drawWorld();
       }, TICK_INTERVAL_MS);
     }
@@ -279,7 +219,7 @@
       addLog('🏋️ Entrenaste: +5 EXP');
       checkLevelUp();
       updateUI();
-      scheduleSave();
+      saveGameLocal();
       drawWorld();
     }
 
@@ -289,11 +229,13 @@
       playerProfile.gold += gold;
       addLog(`🗺️ Exploraste y encontraste ${gold} de oro.`);
       updateUI();
-      scheduleSave();
+      saveGameLocal();
       drawWorld();
     }
 
+    // ==========================================
     // CANVAS
+    // ==========================================
     function drawWorld() {
       const canvas = $('gameCanvas');
       const ctx = canvas.getContext('2d');
@@ -342,45 +284,26 @@
       requestAnimationFrame(animateCanvas);
     }
 
-    async function enterGame(user) {
-      currentUser = user;
-      const profile = await loadProfile(user.id);
-      
-      if (!profile) {
-        // Si el trigger no creó el perfil, lo forzamos aquí
-        const username = user.user_metadata.username || 'Aventurero';
-        const { error: insertError } = await supabaseClient.from('profiles').insert([{
-          id: user.id,
-          username: username,
-          level: 1,
-          experience: 0,
-          gold: 0
-        }]);
-        
-        if (insertError) {
-          showAuthMessage('Error crítico al crear perfil: ' + insertError.message);
-          return;
-        }
-        // Recargar el perfil recién creado
-        const newProfile = await loadProfile(user.id);
-        if(!newProfile) return;
-        playerProfile = newProfile;
-      } else {
-        playerProfile = profile;
-      }
+    // ==========================================
+    // ENTRAR AL JUEGO
+    // ==========================================
+    function enterGame(profile) {
+      playerProfile = profile;
       
       $('authScreen').classList.add('hidden');
       $('gameScreen').classList.remove('hidden');
+      
       updateUI();
       addLog(`🌟 Bienvenido, ${playerProfile.username}.`);
+      addLog('⚔️ El modo semi-idle está activo.');
+      
       startIdleLoop();
       animateCanvas();
     }
 
-    async function logout() {
+    function logout() {
       if (idleInterval) clearInterval(idleInterval);
-      await supabaseClient.auth.signOut();
-      currentUser = null;
+      localStorage.removeItem('idleRealms_profile'); // Borra la sesión local
       playerProfile = null;
       $('gameScreen').classList.add('hidden');
       $('authScreen').classList.remove('hidden');
@@ -388,61 +311,53 @@
       showAuthMessage('Sesión cerrada.', 'success');
     }
 
-    // UI EVENT LISTENERS
-    let authMode = 'login';
-
-    $('tabLogin').addEventListener('click', () => {
-      authMode = 'login';
-      $('tabLogin').className = 'flex-1 py-2 rounded-md text-sm font-medium bg-emerald-600 text-white transition';
-      $('tabRegister').className = 'flex-1 py-2 rounded-md text-sm font-medium text-slate-400 hover:text-white transition';
-      $('authSubmitBtn').textContent = 'Entrar al Reino';
-      showAuthMessage('');
-    });
-
-    $('tabRegister').addEventListener('click', () => {
-      authMode = 'register';
-      $('tabRegister').className = 'flex-1 py-2 rounded-md text-sm font-medium bg-emerald-600 text-white transition';
-      $('tabLogin').className = 'flex-1 py-2 rounded-md text-sm font-medium text-slate-400 hover:text-white transition';
-      $('authSubmitBtn').textContent = 'Crear Aventurero';
-      showAuthMessage('');
-    });
-
-    $('authSubmitBtn').addEventListener('click', async () => {
+    // ==========================================
+    // EVENTOS DE UI
+    // ==========================================
+    $('authSubmitBtn').addEventListener('click', () => {
       const username = $('usernameInput').value.trim();
+      // La contraseña ya no se usa para validar, pero la pedimos para simular el login
       const password = $('passwordInput').value;
 
-      if (!username || !password) return showAuthMessage('Completa todos los campos.');
-      
-      $('authSubmitBtn').disabled = true;
-      $('authSubmitBtn').textContent = 'Procesando...';
+      if (!username) {
+        return showAuthMessage('Por favor, ingresa un nombre.');
+      }
 
-      try {
-        if (authMode === 'register') {
-          const result = await register(username, password);
-          if (result.error) {
-            showAuthMessage(result.error);
-          } else {
-            showAuthMessage('¡Registro exitoso! Entrando...', 'success');
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            if (user) await enterGame(user);
-          }
+      const validationError = validateUsername(username);
+      if (validationError) {
+        return showAuthMessage(validationError);
+      }
+
+      // Buscar si ya existe un perfil guardado
+      const savedProfile = localStorage.getItem('idleRealms_profile');
+
+      if (savedProfile) {
+        // Si hay perfil, cargamos sus datos
+        const parsedProfile = JSON.parse(savedProfile);
+        // (Opcional: validar que el nombre coincida)
+        if (parsedProfile.username.toLowerCase() === username.toLowerCase()) {
+          enterGame(parsedProfile);
         } else {
-          const result = await login(username, password);
-          if (result.error) {
-            showAuthMessage(result.error);
-          } else {
-            showAuthMessage('¡Bienvenido!', 'success');
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            if (user) await enterGame(user);
-          }
+          // Si intenta entrar con otro nombre, creamos uno nuevo
+          createNewProfile(username);
         }
-      } catch (err) {
-        showAuthMessage('Error: ' + err.message);
-      } finally {
-        $('authSubmitBtn').disabled = false;
-        $('authSubmitBtn').textContent = authMode === 'login' ? 'Entrar al Reino' : 'Crear Aventurero';
+      } else {
+        // No hay perfil, creamos uno desde cero
+        createNewProfile(username);
       }
     });
+
+    function createNewProfile(username) {
+      const newProfile = {
+        username: username,
+        level: 1,
+        experience: 0,
+        gold: 0
+      };
+      saveGameLocal(); // Guardado temporal vacío
+      localStorage.setItem('idleRealms_profile', JSON.stringify(newProfile));
+      enterGame(newProfile);
+    }
 
     $('passwordInput').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') $('authSubmitBtn').click();
@@ -452,9 +367,17 @@
     $('trainBtn').addEventListener('click', trainAction);
     $('exploreBtn').addEventListener('click', exploreAction);
 
+    // Al cargar la página, comprobamos si ya hay una sesión guardada
     (async () => {
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (session?.user) await enterGame(session.user);
+      const savedProfile = localStorage.getItem('idleRealms_profile');
+      if (savedProfile) {
+        try {
+          const parsedProfile = JSON.parse(savedProfile);
+          enterGame(parsedProfile);
+        } catch (e) {
+          console.error("Error al leer el guardado local", e);
+        }
+      }
     })();
   </script>
 </body>
